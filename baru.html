@@ -1,0 +1,949 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Premium App Store - Layanan Aplikasi Premium</title>
+    <style>
+        :root {
+            --primary-color: #1a237e;
+            --secondary-color: #0d47a1;
+            --accent-color: #2196f3;
+            --light-color: #e3f2fd;
+            --text-color: #333;
+            --white: #ffffff;
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            /* New animated background */
+            background: linear-gradient(135deg, #1a237e, #0d47a1, #2196f3, #1a237e);
+            background-size: 400% 400%;
+            animation: gradientAnimation 15s ease infinite;
+            
+            color: var(--text-color);
+            line-height: 1.6;
+        }
+
+        @keyframes gradientAnimation {
+            0% {
+                background-position: 0% 50%;
+            }
+            50% {
+                background-position: 100% 50%;
+            }
+            100% {
+                background-position: 0% 50%;
+            }
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 20px;
+        }
+        
+        header {
+            background-color: rgba(0, 0, 0, 0.7);
+            padding: 20px 0;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            backdrop-filter: blur(5px);
+        }
+        
+        nav {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        
+        .logo {
+            color: var(--white);
+            font-size: 30px;
+            font-weight: bold;
+            text-decoration: none;
+        }
+        
+        .logo span {
+            color: var(--accent-color);
+        }
+        
+        .hero {
+            padding: 60px 0;
+            text-align: center;
+            color: var(--white);
+        }
+        
+        .hero h1 {
+            font-size: 2.5rem;
+            margin-bottom: 20px;
+        }
+        
+        .hero p {
+            font-size: 1.2rem;
+            max-width: 800px;
+            margin: 0 auto 30px;
+        }
+        
+        .apps-mini-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+            gap: 20px;
+            padding: 40px 0;
+        }
+        
+        .mini-app {
+            width: 100%;
+            height: 100px;
+            background-color: var(--white);
+            border-radius: 10px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 5px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+        
+        .mini-app:hover {
+            transform: scale(1.05);
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
+        }
+        
+        .mini-app img {
+            max-width: 100%;
+            max-height: 100%;
+            object-fit: contain;
+        }
+        
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.8);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+        
+        .modal.show {
+            display: flex;
+            opacity: 1;
+        }
+        
+        .modal-content {
+            background-color: var(--white);
+            border-radius: 15px;
+            width: 90%;
+            max-width: 500px;
+            padding: 30px;
+            position: relative;
+            transform: translateY(-50px);
+            transition: transform 0.3s ease;
+        }
+        
+        .modal.show .modal-content {
+            transform: translateY(0);
+        }
+        
+        .close-modal {
+            position: absolute;
+            top: 15px;
+            right: 20px;
+            font-size: 30px;
+            cursor: pointer;
+            color: var(--text-color);
+            transition: color 0.3s;
+        }
+        
+        .close-modal:hover {
+            color: var(--accent-color);
+        }
+        
+        .modal-header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        
+        .modal-logo {
+            width: 60px;
+            height: 60px;
+            object-fit: contain;
+            margin-right: 20px;
+            border-radius: 12px;
+            background-color: #f5f5f5;
+            padding: 10px;
+        }
+        
+        .modal-title {
+            font-size: 1.4rem;
+            font-weight: bold;
+        }
+        
+        .price-tag {
+            background-color: var(--accent-color);
+            color: var(--white);
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-weight: bold;
+            margin-top: 10px;
+            display: inline-block;
+            font-size: 0.9rem;
+        }
+        
+        /* Membuat daftar harga menjadi grid horizontal */
+        .price-details #priceList {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        /* Setiap item harga berbentuk card horizontal */
+        .price-item {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            border: 1px solid #eee;
+            border-radius: 8px;
+            padding: 10px 15px;
+            min-width: 130px;
+            background-color: #f9f9f9;
+            text-align: center;
+        }
+
+        /* Atur ukuran teks */
+        .price-duration {
+            font-size: 0.85rem;
+            font-weight: 500;
+            margin-bottom: 5px;
+        }
+
+        .price-amount {
+            font-size: 0.95rem;
+            font-weight: bold;
+            color: var(--secondary-color);
+        }
+        
+        .buy-btn {
+            display: inline-block;
+            background-color: #25D366;
+            color: white;
+            padding: 12px 30px;
+            border-radius: 5px;
+            text-decoration: none;
+            font-weight: bold;
+            margin-top: 20px;
+            transition: all 0.3s;
+            width: 100%;
+            text-align: center;
+        }
+        
+        .buy-btn:hover {
+            background-color: #128C7E;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+        }
+        
+        .app-description {
+            margin: 15px 0;
+            color: #666;
+            font-size: 0.95rem;
+            line-height: 1.5;
+        }
+        
+        footer {
+            background-color: rgba(0, 0, 0, 0.8);
+            color: var(--white);
+            padding: 30px 0;
+            text-align: center;
+        }
+        
+        .contact-info {
+            margin-top: 20px;
+        }
+        
+        .join-group-btn {
+            display: inline-block;
+            background-color: #25D366;
+            color: white;
+            padding: 12px 20px;
+            border-radius: 5px;
+            text-decoration: none;
+            font-weight: bold;
+            margin-top: 15px;
+            transition: all 0.3s;
+            border: 2px solid #25D366;
+        }
+        
+        .join-group-btn:hover {
+            background-color: #128C7E;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+        }
+        
+        /* Responsive design untuk footer */
+        @media (max-width: 768px) {
+            .join-group-btn {
+                padding: 10px 15px;
+                font-size: 0.9rem;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .apps-mini-grid {
+                grid-template-columns: repeat(auto-fill, minmax(80px, 1fr));
+                gap: 15px;
+            }
+            
+            .mini-app {
+                height: 80px;
+                padding: 10px;
+            }
+            
+            .modal-content {
+                padding: 20px;
+            }
+            
+            .modal-logo {
+                width: 50px;
+                height: 50px;
+                margin-right: 15px;
+            }
+            
+            .modal-title {
+                font-size: 1.2rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="container">
+            <nav>
+                <a href="#" class="logo">Dex<span>Store</span></a>
+            </nav>
+        </div>
+    </header>
+    
+    <section class="hero">
+        <div class="container">
+            <h1>Layanan Aplikasi Premium Terbaik</h1>
+            <p>Dapatkan akses premium ke berbagai aplikasi dengan harga terjangkau & Full garansi</p>
+        </div>
+    </section>
+    
+    <section class="container">
+        <h2 style="color: white; text-align: center; margin-bottom: 20px;">Pilih Aplikasi Premium Anda</h2>
+        <div class="apps-mini-grid" id="appsMiniGrid"></div>
+    </section>
+    
+    <div class="modal" id="appModal">
+        <div class="modal-content">
+            <span class="close-modal" id="closeModal">&times;</span>
+            <div class="modal-header">
+                <img class="modal-logo" id="modalLogo" src="" alt="">
+                <div>
+                    <h2 class="modal-title" id="modalTitle">Aplikasi</h2>
+                    <div class="price-tag" id="priceRange">Mulai dari Rp25.000</div>
+                </div>
+            </div>
+            <p class="app-description" id="appDescription"></p>
+            <div class="price-details">
+                <h3>Paket Harga</h3>
+                <div id="priceList"></div>
+            </div>
+            <a href="https://wa.me/6281225589199?text=Saya%20mau%20beli%20app%20premium" class="buy-btn" id="buyBtn">Beli Sekarang</a>
+        </div>
+    </div>
+    
+    <footer>
+        <div class="container">
+            <h3>PremiumAppStore</h3>
+            <p>Layanan aplikasi premium terbaik dengan harga terjangkau</p>
+            <div class="contact-info">
+                <p>WhatsApp: 0812-2558-9199</p>
+                <!-- Tambahkan tombol join grup WhatsApp -->
+                <a href="https://chat.whatsapp.com/C4A3SKNNTx59fuW4ePzsYa" class="join-group-btn" target="_blank">
+                    Join Grup WhatsApp
+                </a>
+            </div>
+        </div>
+    </footer>
+    
+<script>
+const apps = [
+    {
+        id: 1,
+        name: "Netflix",
+        logo: "https://upload.wikimedia.org/wikipedia/commons/0/08/Netflix_2015_logo.svg",
+        prices: [
+            { duration: "1p1u - 3 Hari", price: "Rp10.500" },
+            { duration: "1p1u - 5 Hari", price: "Rp13.000" },
+            { duration: "1p1u - 7 Hari", price: "Rp15.000" },
+            { duration: "1p1u - 1 Bulan", price: "Rp32.500" },
+            { duration: "1p1u - 2 Bulan", price: "Rp70.000" },
+            { duration: "1p2u - 3 Hari", price: "Rp7.000" },
+            { duration: "1p2u - 5 Hari", price: "Rp9.000" },
+            { duration: "1p2u - 7 Hari", price: "Rp15.000" },
+            { duration: "1p2u - 1 Bulan", price: "Rp23.000" },
+            { duration: "1p2u - 2 Bulan", price: "Rp45.000" },
+            { duration: "Semi Private - 1 Bulan", price: "Rp35.000" },
+            { duration: "Private - 1 Bulan", price: "Rp150.000" }
+        ],
+        description: "Login TV +2k, Resolusi Ultra HD 4K, akun resmi, full garansi selama durasi, garansi berlaku jika mematuhi S&K."
+    },
+    {
+        id: 2,
+        name: "Spotify",
+        logo: "https://upload.wikimedia.org/wikipedia/commons/1/19/Spotify_logo_without_text.svg",
+        prices: [
+            { duration: "Student 1 Bulan", price: "Rp20.000" },
+            { duration: "FamPlan 1 Bulan", price: "Rp25.000" }
+        ],
+        description: "Akun resmi, bebas putar semua lagu tanpa iklan, garansi berlaku jika mematuhi S&K."
+    },
+    {
+        id: 3,
+        name: "Capcut",
+        logo: "https://images.seeklogo.com/logo-png/43/1/capcut-logo-png_seeklogo-437025.png",
+        prices: [
+            { duration: "Private Plan - 7 Hari", price: "Rp10.000" },
+            { duration: "Private Plan - 1 Bulan", price: "Rp15.000" },
+            { duration: "Sharing Plan - 7 Hari", price: "Rp5.000" },
+            { duration: "Sharing Plan - 1 Bulan", price: "Rp10.000" }
+        ],
+        description: "Private bisa login 2 Device, akun resmi, full garansi selama durasi."
+    },
+    {
+        id: 4,
+        name: "Canva",
+        logo: "https://images.seeklogo.com/logo-png/43/1/canva-logo-png_seeklogo-438258.png",
+        prices: [
+            { duration: "Member - 1 Bulan", price: "Rp5.000" },
+            { duration: "Member - 3 Bulan", price: "Rp13.000" },
+            { duration: "Member - 6 Bulan", price: "Rp17.000" },
+            { duration: "Member - 1 Tahun (6 Bulan Garansi)", price: "Rp20.000" },
+            { duration: "Member - 1 Tahun (Full Garansi)", price: "Rp22.000" },
+            { duration: "Admin - 1 Bulan", price: "Rp13.000" },
+            { duration: "Famhead - 1 Bulan", price: "Rp15.000" }
+        ],
+        description: "Designer +1k, via invite email, Famhead bisa invite 100+ member, full garansi selama durasi."
+    },
+    {
+        id: 5,
+        name: "YouTube Premium",
+        logo: "https://images.seeklogo.com/logo-png/27/1/youtube-icon-logo-png_seeklogo-270054.png",
+        prices: [
+            { duration: "Famplan - 1 Bulan", price: "Rp10.000" },
+            { duration: "Famplan - 2 Bulan", price: "Rp15.000" },
+            { duration: "Famplan - 3 Bulan", price: "Rp20.000" },
+            { duration: "Indplan - 1 Bulan", price: "Rp20.000" },
+            { duration: "Indplan - 3 Bulan (No Garansi)", price: "Rp25.000" },
+            { duration: "Indplan - 3 Bulan (Full Garansi)", price: "Rp35.000" }
+        ],
+        description: "Famplan sistem invite, email seller +2k, full garansi berlaku jika mematuhi S&K."
+    },
+    {
+        id: 6,
+        name: "Viu",
+        logo: "https://images.seeklogo.com/logo-png/38/1/viu-logo-png_seeklogo-387054.png",
+        prices: [
+            { duration: "Private - 1 Bulan", price: "Rp10.000" },
+            { duration: "Private - 2 Bulan", price: "Rp15.000" },
+            { duration: "Private - 3 Bulan", price: "Rp20.000" }
+        ],
+        description: "Akun resmi, bisa login 5 device, full garansi selama durasi."
+    },
+    {
+        id: 7,
+        name: "WeTV",
+        logo: "https://www.static-src.com/wcsstore/Indraprastha/images/catalog/full/catalog-image/92/MTA-182106622/wetv_wetv_full01_h8jdfmn8.jpg",
+        prices: [
+            { duration: "Sharing - 1 Bulan", price: "Rp10.000" },
+            { duration: "Sharing - 6 Bulan", price: "Rp27.000" },
+            { duration: "Sharing - 1 Tahun", price: "Rp30.000" },
+            { duration: "Private - 1 Bulan", price: "Rp30.000" }
+        ],
+        description: "Login TV +2K. Sharing: full garansi (1B), 6B garansi 4B, 1T garansi 6B. Private: akun seller (tanya stok). Akun seller +3K."
+    },
+    {
+        id: 8,
+        name: "IQIYI VIP",
+        logo: "https://images.seeklogo.com/logo-png/48/1/iqiyi-logo-png_seeklogo-482605.png",
+        prices: [
+            { duration: "Sharing - 1 Bulan", price: "Rp10.000" },
+            { duration: "Sharing - 3 Bulan", price: "Rp17.000" },
+            { duration: "Private - 1 Bulan", price: "Rp40.000" }
+        ],
+        description: "Garansi, akun dari seller, 3 user, Basic."
+    },
+    {
+        id: 9,
+        name: "Disney+ Hotstar",
+        logo: "https://images.seeklogo.com/logo-png/42/1/disney-hotstar-logo-png_seeklogo-427118.png",
+        prices: [
+            { duration: "Shared - 1 Bulan", price: "Rp18.000" },
+            { duration: "Private - 1 Bulan", price: "Rp135.000" }
+        ],
+        description: "Akses login nomor, OTP cepat, akun seller terpercaya, garansi full selama aktif. Private bisa untuk 10 user."
+    },
+    {
+        id: 10,
+        name: "Grammarly",
+        logo: "https://upload.wikimedia.org/wikipedia/commons/thumb/0/08/Grammarly_logo.svg/1200px-Grammarly_logo.svg.png",
+        prices: [
+            { duration: "Private - 1 Bulan", price: "Rp15.000" },
+            { duration: "Private - 3 Bulan", price: "Rp30.000" },
+            { duration: "Private - 6 Bulan", price: "Rp50.000" },
+            { duration: "Private - 1 Tahun", price: "Rp80.000" }
+        ],
+        description: "Akun resmi, full garansi selama durasi."
+    },
+    {
+        id: 11,
+        name: "ChatGPT",
+        logo: "https://upload.wikimedia.org/wikipedia/commons/thumb/0/04/ChatGPT_logo.svg/1200px-ChatGPT_logo.svg.png",
+        prices: [
+            { duration: "Private - 1 Bulan", price: "Rp25.000" },
+            { duration: "Private - 3 Bulan", price: "Rp60.000" }
+        ],
+        description: "Akun resmi, full garansi selama durasi."
+    },
+    {
+        id: 12,
+        name: "VSCO",
+        logo: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcT4SylJc97YgZgcQiDgvLracNGtAsJLNou6Qw&s",
+        prices: [
+            { duration: "Private - 1 Bulan", price: "Rp10.000" },
+            { duration: "Private - 3 Bulan", price: "Rp25.000" },
+            { duration: "Private - 6 Bulan", price: "Rp40.000" },
+            { duration: "Private - 1 Tahun", price: "Rp60.000" }
+        ],
+        description: "Akun resmi, full garansi selama durasi."
+    },
+    {
+        id: 13,
+        name: "Alight Motion",
+        logo: "https://play-lh.googleusercontent.com/OU0BlP8C9-V7ECl2crma7B48nzDbK7liSLjn0j_fpTlyWG6qyEE-mw_KFZ9aOXF0a3w",
+        prices: [
+            { duration: "Private - 1 Tahun", price: "Rp10.000" }
+        ],
+        description: "Editan tidak saling terlihat antar user. Akun langsung dari Admin, bisa ganti email, support Android & iOS, garansi 6 bulan."
+    },
+    {
+        id: 14,
+        name: "PicsArt",
+        logo: "https://upload.wikimedia.org/wikipedia/commons/thumb/e/e7/PicsArt_logo.svg/1200px-PicsArt_logo.svg.png",
+        prices: [
+            { duration: "Private - 1 Bulan", price: "Rp10.000" },
+            { duration: "Private - 3 Bulan", price: "Rp25.000" },
+            { duration: "Private - 6 Bulan", price: "Rp40.000" },
+            { duration: "Private - 1 Tahun", price: "Rp60.000" }
+        ],
+        description: "Akun resmi, full garansi selama durasi."
+    },
+    {
+        id: 15,
+        name: "Tezza",
+        logo: "https://is1-ssl.mzstatic.com/image/thumb/Purple112/v4/2e/1a/1b/2e1a1b1b-1b1b-1b1b-1b1b-1b1b1b1b1b1b/AppIcon-0-0-1x_U007emarketing-0-0-0-7-0-0-sRGB-0-0-0-GLES2_U002c0-512MB-85-220-0-0.png/1200x1200bb.png",
+        prices: [
+            { duration: "Private - 1 Bulan", price: "Rp10.000" },
+            { duration: "Private - 3 Bulan", price: "Rp25.000" },
+            { duration: "Private - 6 Bulan", price: "Rp40.000" },
+            { duration: "Private - 1 Tahun", price: "Rp60.000" }
+        ],
+        description: "Akun resmi, full garansi selama durasi."
+    },
+    {
+        id: 16,
+        name: "Remini",
+        logo: "https://upload.wikimedia.org/wikipedia/commons/thumb/e/e7/Remini_logo.svg/1200px-Remini_logo.svg.png",
+        prices: [
+            { duration: "Sharing - 7 Hari", price: "Rp6.000" },
+            { duration: "Sharing - 1 Bulan", price: "Rp10.000" }
+        ],
+        description: "Akun dari admin, bergaransi, All Device, via web."
+    },
+    {
+        id: 17,
+        name: "Foodie",
+        logo: "https://upload.wikimedia.org/wikipedia/commons/thumb/e/e7/Foodie_logo.svg/1200px-Foodie_logo.svg.png",
+        prices: [
+            { duration: "Private - 1 Bulan", price: "Rp10.000" },
+            { duration: "Private - 3 Bulan", price: "Rp25.000" },
+            { duration: "Private - 6 Bulan", price: "Rp40.000" },
+            { duration: "Private - 1 Tahun", price: "Rp60.000" }
+        ],
+        description: "Akun resmi, full garansi selama durasi."
+    },
+    {
+        id: 18,
+        name: "Lightroom",
+        logo: "https://upload.wikimedia.org/wikipedia/commons/thumb/a/a7/Adobe_Lightroom_logo.svg/1200px-Adobe_Lightroom_logo.svg.png",
+        prices: [
+            { duration: "Private - 1 Bulan", price: "Rp10.000" },
+            { duration: "Private - 3 Bulan", price: "Rp25.000" },
+            { duration: "Private - 6 Bulan", price: "Rp40.000" },
+            { duration: "Private - 1 Tahun", price: "Rp60.000" }
+        ],
+        description: "Akun resmi, full garansi selama durasi."
+    },
+    {
+        id: 19,
+        name: "InShot",
+        logo: "https://upload.wikimedia.org/wikipedia/commons/thumb/e/e7/InShot_logo.svg/1200px-InShot_logo.svg.png",
+        prices: [
+            { duration: "Private - 1 Bulan", price: "Rp10.000" },
+            { duration: "Private - 3 Bulan", price: "Rp25.000" },
+            { duration: "Private - 6 Bulan", price: "Rp40.000" },
+            { duration: "Private - 1 Tahun", price: "Rp60.000" }
+        ],
+        description: "Akun resmi, full garansi selama durasi."
+    },
+    {
+        id: 20,
+        name: "VN",
+        logo: "https://upload.wikimedia.org/wikipedia/commons/thumb/e/e7/VN_Video_Editor_logo.svg/1200px-VN_Video_Editor_logo.svg.png",
+        prices: [
+            { duration: "Private - 1 Bulan", price: "Rp10.000" },
+            { duration: "Private - 3 Bulan", price: "Rp25.000" },
+            { duration: "Private - 6 Bulan", price: "Rp40.000" },
+            { duration: "Private - 1 Tahun", price: "Rp60.000" }
+        ],
+        description: "Akun resmi, full garansi selama durasi."
+    },
+    {
+        id: 21,
+        name: "Getcontact",
+        logo: "https://upload.wikimedia.org/wikipedia/commons/thumb/e/e7/Getcontact_logo.svg/1200px-Getcontact_logo.svg.png",
+        prices: [
+            { duration: "1 Bulan", price: "Rp10.000" }
+        ],
+        description: "Standby saat akses OTP, garansi selama 20 hari, Nomor GTC = Nomor WA."
+    },
+    {
+        id: 22,
+        name: "NordVPN",
+        logo: "https://upload.wikimedia.org/wikipedia/commons/thumb/e/e7/NordVPN_logo.svg/1200px-NordVPN_logo.svg.png",
+        prices: [
+            { duration: "Private - 1 Bulan", price: "Rp15.000" },
+            { duration: "Private - 3 Bulan", price: "Rp35.000" },
+            { duration: "Private - 6 Bulan", price: "Rp60.000" },
+            { duration: "Private - 1 Tahun", price: "Rp100.000" }
+        ],
+        description: "Akun resmi, full garansi selama durasi."
+    },
+    {
+        id: 23,
+        name: "ExpressVPN",
+        logo: "https://upload.wikimedia.org/wikipedia/commons/thumb/e/e7/ExpressVPN_logo.svg/1200px-ExpressVPN_logo.svg.png",
+        prices: [
+            { duration: "Private - 1 Bulan", price: "Rp15.000" },
+            { duration: "Private - 3 Bulan", price: "Rp35.000" },
+            { duration: "Private - 6 Bulan", price: "Rp60.000" },
+            { duration: "Private - 1 Tahun", price: "Rp100.000" }
+        ],
+        description: "Akun resmi, full garansi selama durasi."
+    },
+    {
+        id: 24,
+        name: "Tunnelbear",
+        logo: "https://upload.wikimedia.org/wikipedia/commons/thumb/e/e7/Tunnelbear_logo.svg/1200px-Tunnelbear_logo.svg.png",
+        prices: [
+            { duration: "Private - 1 Bulan", price: "Rp10.000" },
+            { duration: "Private - 3 Bulan", price: "Rp25.000" },
+            { duration: "Private - 6 Bulan", price: "Rp40.000" },
+            { duration: "Private - 1 Tahun", price: "Rp60.000" }
+        ],
+        description: "Akun resmi, full garansi selama durasi."
+    },
+    {
+        id: 25,
+        name: "VidIQ",
+        logo: "https://upload.wikimedia.org/wikipedia/commons/thumb/e/e7/VidIQ_logo.svg/1200px-VidIQ_logo.svg.png",
+        prices: [
+            { duration: "Boost - 1 Bulan", price: "Rp25.000" },
+            { duration: "Boost - 3 Bulan", price: "Rp60.000" },
+            { duration: "Boost - 6 Bulan", price: "Rp100.000" },
+            { duration: "Boost - 1 Tahun", price: "Rp150.000" }
+        ],
+        description: "Akun resmi, full garansi selama durasi."
+    },
+    {
+        id: 26,
+        name: "Semrush",
+        logo: "https://upload.wikimedia.org/wikipedia/commons/thumb/e/e7/Semrush_logo.svg/1200px-Semrush_logo.svg.png",
+        prices: [
+            { duration: "Guru - 1 Bulan", price: "Rp50.000" },
+            { duration: "Guru - 3 Bulan", price: "Rp120.000" },
+            { duration: "Guru - 6 Bulan", price: "Rp200.000" },
+            { duration: "Guru - 1 Tahun", price: "Rp350.000" }
+        ],
+        description: "Akun resmi, full garansi selama durasi."
+    },
+    {
+        id: 27,
+        name: "Zoom",
+        logo: "https://upload.wikimedia.org/wikipedia/commons/thumb/e/e7/Zoom_logo.svg/1200px-Zoom_logo.svg.png",
+        prices: [
+            { duration: "Pro - 1 Bulan", price: "Rp20.000" },
+            { duration: "Pro - 3 Bulan", price: "Rp50.000" },
+            { duration: "Pro - 6 Bulan", price: "Rp80.000" },
+            { duration: "Pro - 1 Tahun", price: "Rp120.000" }
+        ],
+        description: "Akun resmi, full garansi selama durasi."
+    },
+    {
+        id: 28,
+        name: "Microsoft 365",
+        logo: "https://upload.wikimedia.org/wikipedia/commons/thumb/e/e7/Microsoft_365_logo.svg/1200px-Microsoft_365_logo.svg.png",
+        prices: [
+            { duration: "Personal - 1 Tahun", price: "Rp50.000" },
+            { duration: "Family - 1 Tahun", price: "Rp80.000" }
+        ],
+        description: "Akun resmi, full garansi selama durasi."
+    },
+    {
+        id: 29,
+        name: "Windows 10/11 Pro",
+        logo: "https://upload.wikimedia.org/wikipedia/commons/thumb/e/e7/Windows_10_logo.svg/1200px-Windows_10_logo.svg.png",
+        prices: [
+            { duration: "Lifetime", price: "Rp50.000" }
+        ],
+        description: "Lisensi resmi, aktivasi permanen."
+    },
+    {
+        id: 30,
+        name: "Office 2019/2021",
+        logo: "https://upload.wikimedia.org/wikipedia/commons/thumb/e/e7/Microsoft_Office_logo.svg/1200px-Microsoft_Office_logo.svg.png",
+        prices: [
+            { duration: "Lifetime", price: "Rp50.000" }
+        ],
+        description: "Lisensi resmi, aktivasi permanen."
+    },
+    {
+        id: 31,
+        name: "IDM",
+        logo: "https://upload.wikimedia.org/wikipedia/commons/thumb/e/e7/Internet_Download_Manager_logo.svg/1200px-Internet_Download_Manager_logo.svg.png",
+        prices: [
+            { duration: "Lifetime", price: "Rp20.000" }
+        ],
+        description: "Lisensi resmi, aktivasi permanen."
+    },
+    {
+        id: 32,
+        name: "Loklok",
+        logo: "https://play-lh.googleusercontent.com/JU-2OmNPB0YLMnyVXEE4xymWPBt6vXJ_eS0ryXy1PjMZL6f6NdRorv7X3zu6sJDPmhc",
+        prices: [
+            { duration: "Sharing Basic - 1 Bulan", price: "Rp17.000" },
+            { duration: "Sharing Basic - 2 Bulan", price: "Rp28.000" },
+            { duration: "Sharing Basic - 3 Bulan", price: "Rp30.000" },
+            { duration: "Sharing Premium - 1 Bulan", price: "Rp24.000" }
+        ],
+        description: "Premium All device bisa login TV/Basic Tidak bisa. Sharing 3 User. Full Garansi. Basic Plan. Akun dari seller. S&k berlaku."
+    },
+    {
+        id: 33,
+        name: "Vision+ / Vision Sport+",
+        logo: "https://play-lh.googleusercontent.com/9_0QwK0z6FycN9HJ_n6FVLKpR7JSD6FyKp0eB2B3H0y7Q5Kj5ZQYQ6Q5Kj5ZQYQ6Q5Kj",
+        prices: [
+            { duration: "Vision Sport+ 1 Bulan", price: "Rp2.000" }
+        ],
+        description: "Khusus timnas. Fullgaransi. Alldevice. Akun dari seller/buyer."
+    },
+    {
+        id: 34,
+        name: "HBO GO / HBO Maxx",
+        logo: "https://play-lh.googleusercontent.com/Qz7a6_XY3xqXxcNxxwUbx5d_yGX7Z1Ap4Zz8X3O5O5O5O5O5O5O5O5O5O5O5O5O5",
+        prices: [
+            { duration: "1 Bulan", price: "Rp20.000" }
+        ],
+        description: "Akun sharing 6 User. Plan Standard. Akun dari seller durasi. Full garansi."
+    },
+    {
+        id: 35,
+        name: "Apple Music",
+        logo: "https://upload.wikimedia.org/wikipedia/commons/thumb/5/5e/Apple_Music_logo.svg/1200px-Apple_Music_logo.svg.png",
+        prices: [
+            { duration: "1 Bulan Invite", price: "Rp5.000" }
+        ],
+        description: "Via Invite. Full garansi. Cuman Butuh Email. Akun seller famhead. Android Only."
+    },
+    {
+        id: 36,
+        name: "Wattpad",
+        logo: "https://upload.wikimedia.org/wikipedia/commons/thumb/5/5e/Wattpad_logo.svg/1200px-Wattpad_logo.svg.png",
+        prices: [
+            { duration: "Sharing 1 Bulan", price: "Rp12.000" },
+            { duration: "Sharing 3 Bulan", price: "Rp16.000" },
+            { duration: "Sharing 1 Tahun", price: "Rp29.000" }
+        ],
+        description: "1 Tahun garansi 6 bulan."
+    },
+    {
+        id: 37,
+        name: "Amazon Prime Video",
+        logo: "https://upload.wikimedia.org/wikipedia/commons/thumb/1/1a/Amazon_Prime_Video_logo.svg/1200px-Amazon_Prime_Video_logo.svg.png",
+        prices: [
+            { duration: "Shared 3 Hari", price: "Rp8.000" },
+            { duration: "Shared 7 Hari", price: "Rp15.000" },
+            { duration: "Shared 1 Bulan", price: "Rp20.000" }
+        ],
+        description: "Bisa diakses di semua perangkat. Nonton bebas tanpa iklan."
+    },
+    {
+        id: 38,
+        name: "Gemini AI",
+        logo: "https://upload.wikimedia.org/wikipedia/commons/thumb/8/8d/Gemini_logo.svg/1200px-Gemini_logo.svg.png",
+        prices: [
+            { duration: "1 Bulan", price: "Rp10.000" }
+        ],
+        description: "Akses ke model tercanggih dan fitur premium. Buat video berkualitas tinggi dengan Veo 2. Lebih banyak akses ke berbagai fitur Gemini, termasuk Deep Research. Penyimpanan yang lebih besar dan lebih banyak manfaat premium. Include Google Drive 2TB."
+    },
+    {
+        id: 39,
+        name: "Strava",
+        logo: "https://upload.wikimedia.org/wikipedia/commons/thumb/5/5e/Strava_logo.svg/1200px-Strava_logo.svg.png",
+        prices: [
+            { duration: "Private 1 Bulan", price: "Rp30.000" },
+            { duration: "Share 1 Bulan (3u)", price: "Rp15.000" }
+        ],
+        description: "Akun premium untuk pelacakan aktivitas olahraga."
+    },
+    {
+        id: 40,
+        name: "Wink Premium",
+        logo: "https://play-lh.googleusercontent.com/5QV7N2JX8X8V8V8V8V8V8V8V8V8V8V8V8V8V8V8V8V8V8V8V8V8V8V8V8V8V8V8V8",
+        prices: [
+            { duration: "Sharing IOS 1 Bulan", price: "Rp30.000" },
+            { duration: "Sharing Android 1 Bulan", price: "Rp28.000" },
+            { duration: "Private IOS", price: "Rp70.000" },
+            { duration: "Private Android", price: "Rp67.000" }
+        ],
+        description: "Aplikasi streaming konten premium."
+    },
+    {
+        id: 41,
+        name: "Youku",
+        logo: "https://upload.wikimedia.org/wikipedia/commons/thumb/5/5e/Youku_logo.svg/1200px-Youku_logo.svg.png",
+        prices: [
+            { duration: "Shared 1 Bulan", price: "Rp13.000" },
+            { duration: "Shared 3 Bulan", price: "Rp19.000" },
+            { duration: "Shared 6 Bulan", price: "Rp28.000" }
+        ],
+        description: "Platform streaming video dari China."
+    },
+    {
+        id: 42,
+        name: "Meitu",
+        logo: "https://upload.wikimedia.org/wikipedia/commons/thumb/5/5e/Meitu_logo.svg/1200px-Meitu_logo.svg.png",
+        prices: [
+            { duration: "Share 1 Bulan", price: "Rp27.000" }
+        ],
+        description: "Aplikasi edit foto dan video. Bisa andro dan ios."
+    },
+    {
+        id: 43,
+        name: "Duolingo",
+        logo: "https://upload.wikimedia.org/wikipedia/commons/thumb/5/5e/Duolingo_logo.svg/1200px-Duolingo_logo.svg.png",
+        prices: [
+            { duration: "Family Plan 1 Bulan", price: "Rp23.000" }
+        ],
+        description: "Sistem via invite. Aplikasi belajar bahasa premium."
+    }
+];
+
+// Fungsi untuk menampilkan daftar aplikasi
+function renderApps() {
+    const appsGrid = document.getElementById('appsMiniGrid');
+    appsGrid.innerHTML = '';
+    
+    apps.forEach(app => {
+        const appElement = document.createElement('div');
+        appElement.className = 'mini-app';
+        appElement.innerHTML = `<img src="${app.logo}" alt="${app.name} logo">`;
+        appElement.addEventListener('click', () => openModal(app));
+        appsGrid.appendChild(appElement);
+    });
+}
+
+// Fungsi untuk membuka modal
+function openModal(app) {
+    const modal = document.getElementById('appModal');
+    const modalTitle = document.getElementById('modalTitle');
+    const modalLogo = document.getElementById('modalLogo');
+    const appDescription = document.getElementById('appDescription');
+    const priceList = document.getElementById('priceList');
+    
+    modalTitle.textContent = app.name;
+    modalLogo.src = app.logo;
+    modalLogo.alt = `${app.name} logo`;
+    appDescription.textContent = app.description;
+    
+    // Update price list
+    priceList.innerHTML = '';
+    app.prices.forEach(price => {
+        const priceElement = document.createElement('div');
+        priceElement.className = 'price-item';
+        priceElement.innerHTML = `
+            <div class="price-duration">${price.duration}</div>
+            <div class="price-amount">${price.price}</div>
+        `;
+        priceList.appendChild(priceElement);
+    });
+    
+    // Update price range
+    const priceRange = document.getElementById('priceRange');
+    if (app.prices.length > 0) {
+        const prices = app.prices.map(p => parseInt(p.price.replace(/\D/g, '')));
+        const minPrice = Math.min(...prices);
+        const maxPrice = Math.max(...prices);
+        priceRange.textContent = minPrice === maxPrice 
+            ? `Rp${minPrice.toLocaleString('id-ID')}` 
+            : `Rp${minPrice.toLocaleString('id-ID')} - Rp${maxPrice.toLocaleString('id-ID')}`;
+    }
+    
+    // Show modal
+    modal.classList.add('show');
+    
+    // Update WhatsApp link
+    const buyBtn = document.getElementById('buyBtn');
+    buyBtn.href = `https://wa.me/6281225589199?text=Saya%20mau%20beli%20${encodeURIComponent(app.name)}%20premium`;
+}
+
+// Fungsi untuk menutup modal
+function closeModal() {
+    const modal = document.getElementById('appModal');
+    modal.classList.remove('show');
+}
+
+// Event listeners
+document.getElementById('closeModal').addEventListener('click', closeModal);
+window.addEventListener('click', (e) => {
+    const modal = document.getElementById('appModal');
+    if (e.target === modal) {
+        closeModal();
+    }
+});
+
+// Initialize
+document.addEventListener('DOMContentLoaded', renderApps);
+</script>
+</body>
+</html>
+
