@@ -1,10 +1,11 @@
 <!DOCTYPE html>
+
 <html lang="id">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Premium App Store - Layanan Aplikasi Premium</title>
-    <style>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Premium App Store - Layanan Aplikasi Premium</title>
+<style>
         :root {
             --primary-color: #1a237e;
             --secondary-color: #e50c92;
@@ -95,6 +96,8 @@
             cursor: pointer;
             transition: all 0.3s ease;
             box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            position: relative; /* Needed for fire effect positioning */
+            overflow: visible; /* Allow fire effect to be visible outside */
         }
         
         .mini-app {
@@ -106,6 +109,16 @@
             box-shadow: 0 12px 24px rgba(0, 0, 0, 0.3);
             cursor: pointer;
         }
+        @keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
         /* Animation for popout description */
         @keyframes fadeSlideIn {
             0% {
@@ -117,18 +130,68 @@
                 transform: translateY(0);
             }
         }
-        /* Style and animation for the popout description content */
+
+        @keyframes popBounce {
+  0% {
+    opacity: 0;
+    transform: scale(0.7);
+  }
+  60% {
+    transform: scale(1.05);
+    opacity: 1;
+  }
+  100% {
+    transform: scale(1);
+    opacity: 1; /* Pastikan tetap kelihatan */
+  }
+}
+
+#appModal .modal-content {
+  animation: popBounce 0.5s ease forwards;
+  transform-origin: center;
+  opacity: 1 !important; /* Pastikan tetap terlihat setelah animasi */
+  display: block !important; /* Pastikan tetap muncul */
+}
+@keyframes popBounceCart {
+  0% {
+    opacity: 0;
+    transform: scale(0.85);
+  }
+  60% {
+    transform: scale(1.05);
+    opacity: 1;
+  }
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+#cartDropdown.animate-bounce {
+  animation: popBounceCart 0.35s ease forwards;
+  transform-origin: top center;
+}
+
+
+#appModal .modal-content {
+  animation: popBounce 0.5s ease forwards;
+  transform-origin: center;
+  opacity: 0;
+}
+
+
+            /* Style and animation for the popout description content */
             #popoutDescriptionContent {
                 animation: fadeSlideIn 0.5s ease forwards;
-                opacity: 1;
+                opacity: 0;
                 transform-origin: left;
                 transform-style: preserve-3d;
-                transform: none;
-                transition: none;
+                transform: translateY(20px);
+                transition: opacity 0.5s ease, transform 0.5s ease;
             }
             #popoutDescriptionContent.open {
                 opacity: 1;
-                transform: none;
+                transform: translateY(0);
             }
             #descriptionPopout {
                 display: flex !important;
@@ -137,10 +200,10 @@
                 top: 0;
                 left: 0;
                 margin-left: 0;
-                background-color: var(--white);
+                background-color: #00eaff; /* Changed to a light pastel green for better distinction */
                 padding: 20px;
                 border-radius: 15px;
-                box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+                box-shadow: 0 6px 20px rgba(0,0,0,0.25);
                 width: 500px;
                 max-height: 200vh;
                 overflow-y: auto;
@@ -148,13 +211,32 @@
                 transform-origin: left center;
                 transform-style: preserve-3d;
                 transform: rotateY(90deg);
-                transition: transform 1.2s ease;
+                transition: transform 0.8s cubic-bezier(0.4, 0, 0.2, 1), clip-path 0.8s cubic-bezier(0.4, 0, 0.2, 1);
                 clip-path: inset(0 100% 0 0);
                 perspective: 1000px;
+            }
+            /* Separate style for price package cards */
+            .price-item {
+                background-color: #e0f7fa; /* Light cyan background for price cards */
+                border: 1px solid #eee;
+                border-radius: 12px;
+                padding: 12px 20px;
+                min-width: 130px;
+                text-align: center;
+                box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
+                transition: background-color 0.3s ease, box-shadow 0.3s ease, transform 0.2s ease;
+                cursor: pointer;
             }
             #descriptionPopout.open {
                 transform: rotateY(0deg);
                 clip-path: inset(0 0 0 0);
+                z-index: 1000;
+            }
+            /* Closing animation for popout description */
+            #descriptionPopout.closing {
+                transform: rotateY(90deg);
+                clip-path: inset(0 100% 0 0);
+                transition: transform 0.8s cubic-bezier(0.4, 0, 0.2, 1), clip-path 0.8s cubic-bezier(0.4, 0, 0.2, 1);
                 z-index: 1000;
             }
         /* Animate list items on popout */
@@ -177,6 +259,20 @@
             padding: 2px;
             background-color: #fff;
         }
+        /* Netflix GIF background styles */
+        .mini-app.netflix-gif-bg {
+            position: relative;
+        }
+        .mini-app.netflix-gif-bg img.gif-bg {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 120%;
+            height: 120%;
+            z-index: 0;
+            border-radius: 10px;
+        }
         .mini-app-name {
             margin-top: 5px;
             font-size: 0.85rem;
@@ -188,6 +284,15 @@
             text-overflow: ellipsis;
         }
         
+        .mini-app:hover,
+.mini-app.active {
+  transform: scale(1.1) rotate(3deg);
+  box-shadow: 0 12px 24px rgba(0, 0, 0, 0.3);
+  cursor: pointer;
+}
+
+
+
         .modal {
             display: none;
             position: fixed;
@@ -275,36 +380,40 @@
     z-index: 1200; /* higher than explanation */
 }
 .price-details #priceList {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 10px;
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+    gap: 12px;
+    max-height: 400px;
+    overflow-y: auto;
     position: relative;
-    z-index: 1200; /* higher than explanation */
+    z-index: 1200;
 }
 
 /* Setiap item harga berbentuk card horizontal */
-.price-item {
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    align-items: center;
-    border: 1px solid #eee;
-    border-radius: 12px;
-    padding: 12px 20px;
-    min-width: 130px;
-    background-color: #e0f7fa;
-    text-align: center;
-    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
-    transition: background-color 0.3s ease, box-shadow 0.3s ease, transform 0.2s ease;
-    cursor: pointer;
-}
-
-.price-item:hover {
-    background-color: #00bcd4;
-    color: white;
-    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.3);
-    transform: translateY(-3px);
-}
+        .price-item {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            border: 1px solid #eee;
+            border-radius: 12px;
+            padding: 12px 20px;
+            min-width: 130px;
+            background-color: #e0f7fa;
+            text-align: center;
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
+            transition: background-color 0.3s ease, box-shadow 0.3s ease, transform 0.2s ease;
+            cursor: pointer;
+        }
+        
+        .price-item:hover {
+            background-color: #00bcd4;
+            color: white;
+            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.3);
+            transform: translateY(-3px);
+        }
+        /* Fire shadow border effect for Netflix price cards */
+        /* Removed fire-shadow CSS to disable apiya effect */
 
 /* Atur ukuran teks */
 .price-duration {
@@ -326,7 +435,7 @@
             background-color: #25D366;
             color: white;
             padding: 12px 30px;
-            border-radius: 5px;
+            border-radius: 12px;
             text-decoration: none;
             font-weight: bold;
             margin-top: 20px;
@@ -337,6 +446,30 @@
         
         .buy-btn:hover {
             background-color: #128C7E;
+            color: white;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+        }
+
+        .blue-btn {
+            display: inline-block;
+            background-color: #2196f3;
+            color: white;
+            padding: 12px 30px;
+            border-radius: 12px;
+            text-decoration: none;
+            font-weight: bold;
+            margin-top: 20px;
+            transition: all 0.3s;
+            width: 100%;
+            text-align: center;
+            border: none;
+            cursor: pointer;
+        }
+
+        .blue-btn:hover {
+            background-color: #1976d2;
+            color: white;
             transform: translateY(-2px);
             box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
         }
@@ -359,33 +492,48 @@
             margin-top: 20px;
         }
         
-        @media (max-width: 768px) {
-            .apps-mini-grid {
-                grid-template-columns: repeat(auto-fill, minmax(80px, 1fr));
-                gap: 15px;
-            }
-            
-            .mini-app {
-                height: 80px;
-                padding: 10px;
-            }
-            
-            .modal-content {
-                padding: 20px;
-            }
-            
-            .modal-logo {
-                width: 50px;
-                height: 50px;
-                margin-right: 15px;
-            }
-            
-            .modal-title {
-                font-size: 1.2rem;
-            }
-        }
+        @media (max-width: 600px) {
+  #cartDropdown {
+    position: fixed !important;
+    top: 500% !important;
+    left: 50% !important;
+    transform: translate(-50%, -50%) !important;
+    width: 90% !important;
+    max-width: 400px;
+    max-height: 80vh !important;
+    overflow: hidden !important;
+    background: white;
+    padding: 20px;
+    border-radius: 15px;
+    box-shadow: 0 8px 20px rgba(0,0,0,0.3);
+    z-index: 9999 !important;
+  }
+
+  #cartDropdownItems {
+    max-height: 50vh;
+    overflow-y: auto;
+    margin-bottom: 15px;
+  }
+
+  #cartDropdownItems > div {
+    display: flex;
+    flex-direction: column;
+    margin-bottom: 12px;
+    border-bottom: 1px solid #ddd;
+    padding-bottom: 8px;
+    font-size: 0.9rem;
+  }
+
+  #cartDropdownItems > div > span {
+    margin-bottom: 4px;
+    word-break: break-word;
+  }
+}
+
+
+        
     </style>
-    <style>
+<style>
         /* Scroll animation styles */
         .scroll-animate {
             opacity: 0;
@@ -399,112 +547,177 @@
     </style>
 </head>
 <body>
-    <header>
-        <div class="container">
-            <nav>
-                <a href="#" class="logo">Dex<span>Store</a>
-            </nav>
-        </div>
-    </header>
-    
-    <section class="hero">
-        <div class="container">
-            <h1 class="scroll-animate">Layanan Aplikasi Premium Terbaik</h1>
-            <p class="scroll-animate">Dapatkan akses premium ke berbagai aplikasi dengan harga terjangkau & Full garansi</p>
-        </div>
-    </section>
-    
-    <section class="container">
-        <h2 class="scroll-animate" style="color: white; text-align: center; margin-bottom: 20px;">Pilih Aplikasi Premium Anda</h2>
-        <div class="apps-mini-grid" id="appsMiniGrid"></div>
-    </section>
-    
-    <div class="modal" id="appModal">
-        <div class="modal-content">
-            <span class="close-modal" id="closeModal">&times;</span>
-            <div class="modal-header">
-                <img class="modal-logo" id="modalLogo" src="" alt="">
-                <div>
-                    <h2 class="modal-title" id="modalTitle">Aplikasi</h2>
-                    <div style="display: flex; align-items: center; gap: 10px;">
-                        <div class="price-tag" id="priceRange">Mulai dari Rp25.000</div>
-                        <button id="explanationBtn" style="background-color: var(--accent-color); color: white; border: none; border-radius: 12px; padding: 5px 12px; cursor: pointer; font-weight: bold; font-size: 0.85rem;">Penjelasan</button>
-                    </div>
-                </div>
-            </div>
-            <p class="app-description" id="appDescription" style="display:none;"></p>
-            <div class="price-details" style="position: relative;">
-                <h3>Paket Harga</h3>
-                <div id="priceList"></div>
-            </div>
-            <a href="https://wa.me/6281225589199?text=Saya%20mau%20beli%20app%20premium" class="buy-btn" id="buyBtn">Beli Sekarang</a>
-
-            <!-- Pop-out description container -->
-            <div id="descriptionPopout" style="display:none; position: absolute; top: 0; left: 100%; margin-left: 15px;
-                background-color: var(--white); padding: 20px; border-radius: 15px; box-shadow: 0 4px 12px rgba(0,0,0,0.3);
-                width: 500px; max-height: 200vh; overflow-y: auto; z-index: 1100;">
-                <button id="closeDescriptionPopout" style="background: none; border: none; font-size: 1.5rem; font-weight: bold; position: absolute; top: 10px; right: 15px; cursor: pointer;">&times;</button>
-                <div id="popoutDescriptionContent" style="margin-top: 30px; color: #444; font-size: 0.95rem; line-height: 1.5;"></div>
-            </div>
-        </div>
-    </div>
-    
-<footer>
-    <div class="container footer-container">
-        <h3>PremiumAppStore</h3>
-        <p>Layanan aplikasi premium terbaik dengan harga terjangkau</p>
-        <div class="contact-info">
-            <p>WhatsApp: 0812-2558-9199</p>
-        </div>
-        <a href="https://chat.whatsapp.com/C4A3SKNNTx59fuW4ePzsYa" target="_blank" class="join-group-btn">
-            Join Grup WhatsApp
-        </a>
-        <button id="claimGaransiBtn" class="claim-garansi-btn">Claim Garansi</button>
-    </div>
-</footer>
-
-<!-- Claim Garansi Modal -->
-<div class="modal" id="claimGaransiModal">
-    <div class="modal-content">
-        <span class="close-modal" id="closeClaimGaransiModal">&times;</span>
-        <h2>Claim Garansi APK Prem</h2>
-        <form id="claimGaransiForm">
-            <label>꒰♡ Tanggal order :</label>
-            <input type="date" name="tanggalOrder" required>
-            <label>꒰♡ Tanggal problem :</label>
-            <input type="date" name="tanggalProblem" required>
-            <label>꒰♡ Sisa hari :</label>
-            <input type="number" name="sisaHari" min="0" required>
-            <label>꒰♡ Durasi :</label>
-            <input type="text" name="durasi" required>
-            <label>꒰♡ Aplikasi :</label>
-            <input type="text" name="aplikasi" required>
-            <label>꒰♡ Gmail/Nomor Akun :</label>
-            <input type="text" name="gmailNomor" required>
-            <label>꒰♡ Password :</label>
-            <input type="text" name="password" required>
-            <label>꒰♡ Profil :</label>
-            <input type="text" name="profil" required>
-            <label>꒰♡ Pin :</label>
-            <input type="text" name="pin" required>
-            <label>꒰♡ Keterangan :</label>
-            <input type="text" name="keterangan" placeholder="Sharing/Private/1P2U/1P1U/Semi Private/Indplan/Famplan/Member/Head/Admin" required>
-            <label>꒰♡ Nama Tim :</label>
-            <input type="text" name="namaTim" placeholder="Khusus canva">
-            <label>꒰♡ Lokasi + device :</label>
-            <input type="text" name="lokasiDevice" placeholder="Khusus disney & netflix">
-            <p><strong>CATATAN:</strong></p>
-            <ul>
-                <li>SETRAKAN SCREENSHOT PROBLEM</li>
-                <li>GADA SS, GA PROSES</li>
-                <li>SABAR!</li>
-                <li>GARANSI 3x24 jam</li>
-            </ul>
-            <button type="submit" class="claim-btn">Claim</button>
-        </form>
-    </div>
+    <div id="loadingOverlay" style="
+  position: fixed;
+  top: 0; left: 0;
+  width: 100vw; height: 100vh;
+  background: linear-gradient(135deg, #1a237e, #e50c92);
+  z-index: 9999;
+  display: none;
+  justify-content: center;
+  align-items: center;
+  flex-direction: column;
+  color: white;
+  text-align: center;
+  padding: 20px;
+">
+  <img src="https://media.tenor.com/6bLqzMcCDzEAAAAM/marmalady-loading-cat.gif" 
+       alt="Loading GIF"
+       style="width: 120px; height: 120px; margin-bottom: 20px; animation: fadeInUp 1s ease forwards;" />
+  <p style="font-size: 1.3rem; animation: fadeInUp 1.5s ease forwards;">Memuat konten, mohon tunggu...</p>
 </div>
 
+<!-- Initial Entry Overlay -->
+<div id="entryPage" style="position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: linear-gradient(135deg, var(--primary-color), var(--secondary-color)); display: flex; flex-direction: column; justify-content: center; align-items: center; z-index: 5000; color: white; text-align: center; padding: 20px; transition: opacity 0.5s ease;">
+    <h1 style="font-size: 3rem; margin-bottom: 20px;">Selamat Datang di DexStore</h1>
+    <p style="font-size: 1.2rem; margin-bottom: 40px;">Layanan Aplikasi Premium Terbaik dengan Harga Terjangkau</p>
+    <button id="enterBtn" style="background-color: var(--accent-color); border: none; color: white; padding: 15px 40px; font-size: 1.2rem; border-radius: 30px; cursor: pointer; box-shadow: 0 4px 12px rgba(0,0,0,0.3); transition: background-color 0.3s ease;">Masuk</button>
+</div>
+<style>
+@keyframes buttonClickAnimation {
+    0% {
+        transform: scale(1);
+        box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+    }
+    50% {
+        transform: scale(0.95);
+        box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+    }
+    100% {
+        transform: scale(1);
+        box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+    }
+}
+.button-click-animate {
+    animation: buttonClickAnimation 0.3s ease forwards;
+}
+</style>
+
+<header>
+<div class="container">
+<nav style="display: flex; justify-content: space-between; align-items: center; width: 100%;">
+<a class="logo" href="#">Dex<span>Store</span></a>
+    <div class="cart-container" style="display: flex; align-items: center; gap: 15px; color: var(--white); font-weight: bold; font-size: 1rem; cursor: pointer; position: relative;">
+        <div id="cartIcon" style="display: flex; align-items: center; gap: 5px;">
+            <span style="font-size: 1.5rem;">🛒</span>
+            <span id="cartCount" style="background-color: var(--accent-color); border-radius: 50%; padding: 2px 7px; font-size: 0.9rem; color: rgb(200, 255, 0);">0</span>
+        </div>
+        <button id="viewCartBtn" style="background-color: var(--accent-color); border: none; color: rgb(255, 255, 255); padding: 8px 15px; border-radius: 5px; font-weight: bold; cursor: pointer; transition: background-color 0.3s;">
+            Lihat Keranjang
+        </button>
+<div id="cartDropdown" style="display: none; position: absolute; top: 100%; left: -50px; background: white; color: black; width: 450px; max-height: 400px; overflow-y: auto; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.15); padding: 20px; z-index: 3000;">
+            <button id="closeCartDropdown" style="position: absolute; top: 10px; right: 15px; font-size: 24px; cursor: pointer; background: none; border: none; color: var(--accent-color); font-weight: bold;">×</button>
+            <h3 style="margin-top: 0; margin-bottom: 10px;">Isi Keranjang</h3>
+            <div id="cartDropdownItems"></div>
+            <button id="checkoutBtnDropdown" style="background-color: var(--accent-color); border: none; color: white; padding: 10px 20px; border-radius: 8px; font-weight: bold; cursor: pointer; width: 100%;">Checkout</button>
+        </div>
+    </div>
+
+<!-- Modal Keranjang -->
+<div class="modal" id="cartModal" style="display:none; position: absolute; background-color: transparent; z-index: 2000;">
+<div class="modal-content" style="background: white; border-radius: 15px; width: 450px; max-width: 450px; padding: 25px 30px; position: relative; max-height: 400px; overflow-y: auto; box-shadow: 0 4px 12px rgba(0,0,0,0.15);">
+        <span id="closeCartModal" style="position: absolute; top: 10px; right: 15px; font-size: 24px; cursor: pointer;">×</span>
+        <h2>Isi Keranjang</h2>
+        <div id="cartItemsList" style="max-height: 300px; overflow-y: auto; margin-bottom: 20px;"></div>
+        <button id="checkoutBtn" style="background-color: var(--accent-color); border: none; color: white; padding: 10px 20px; border-radius: 8px; font-weight: bold; cursor: pointer; width: 100%;">Checkout</button>
+    </div>
+</div>
+</nav>
+</div>
+</header>
+<section class="hero">
+<div class="container">
+<h1 class="scroll-animate">Layanan Aplikasi Premium Terbaik</h1>
+<p class="scroll-animate">Dapatkan akses premium ke berbagai aplikasi dengan harga terjangkau &amp; Full garansi</p>
+</div>
+</section>
+<section class="container">
+<h2 class="scroll-animate" style="color: white; text-align: center; margin-bottom: 20px;">Pilih Aplikasi Premium Anda</h2>
+<div class="apps-mini-grid" id="appsMiniGrid"></div>
+</section>
+<div class="modal" id="appModal">
+<div class="modal-content">
+<span class="close-modal" id="closeModal">×</span>
+<div class="modal-header">
+<img alt="" class="modal-logo" id="modalLogo" src=""/>
+<div>
+<h2 class="modal-title" id="modalTitle">Aplikasi</h2>
+<div style="display: flex; align-items: center; gap: 10px;">
+<div class="price-tag" id="priceRange">Mulai dari Rp25.000</div>
+<button id="explanationBtn" style="background-color: var(--accent-color); color: white; border: none; border-radius: 12px; padding: 5px 12px; cursor: pointer; font-weight: bold; font-size: 0.85rem;">Penjelasan</button>
+</div>
+</div>
+</div>
+<p class="app-description" id="appDescription" style="display:none;"></p>
+<div class="price-details" style="position: relative;">
+<h3>Paket Harga</h3>
+<div id="priceList"></div>
+</div>
+<div style="display: flex; gap: 20px; margin-top: 20px;">
+  <a class="buy-btn" href="https://wa.me/6281225589199?text=Saya%20mau%20beli%20app%20premium" id="buyBtn">HUBUNGI PENJUAL</a>
+  <button class="blue-btn" id="viewCartBtnModal" disabled style="opacity: 0.5; cursor: not-allowed;">LIHAT KERANJANG</button>
+</div>
+<!-- Pop-out description container -->
+<div id="descriptionPopout" style="display:none;position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);background-color:#2196f3;padding:20px;border-radius:15px;box-shadow:0 4px 12px rgba(0,0,0,0.3);width:90%;max-width:500px;max-height:80vh;overflow-y:auto;; z-index: 9999;">
+<button id="closeDescriptionPopout" style="background: none; border: none; font-size: 1.5rem; font-weight: bold; position: absolute; top: 10px; right: 15px; cursor: pointer; color: #ffffff">×</button>
+<div id="popoutDescriptionContent" style="margin-top: 30px; color: #ffffff; font-size: 0.95rem; line-height: 1.5;"></div>
+</div>
+</div>
+</div>
+<footer>
+<div class="container footer-container">
+<h3>PremiumAppStore</h3>
+<p>Layanan aplikasi premium terbaik dengan harga terjangkau</p>
+<div class="contact-info">
+<p>WhatsApp: 0812-2558-9199</p>
+</div>
+<a class="join-group-btn" href="https://chat.whatsapp.com/C4A3SKNNTx59fuW4ePzsYa" target="_blank">
+            Join Grup WhatsApp
+        </a>
+<button class="claim-garansi-btn" id="claimGaransiBtn">Claim Garansi</button>
+</div>
+</footer>
+<!-- Claim Garansi Modal -->
+<div class="modal" id="claimGaransiModal">
+<div class="modal-content">
+<span class="close-modal" id="closeClaimGaransiModal">×</span>
+<h2>Claim Garansi APK Prem</h2>
+<form id="claimGaransiForm">
+<label>꒰♡ Tanggal order :</label>
+<input name="tanggalOrder" required="" type="date"/>
+<label>꒰♡ Tanggal problem :</label>
+<input name="tanggalProblem" required="" type="date"/>
+<label>꒰♡ Sisa hari :</label>
+<input min="0" name="sisaHari" required="" type="number"/>
+<label>꒰♡ Durasi :</label>
+<input name="durasi" required="" type="text"/>
+<label>꒰♡ Aplikasi :</label>
+<input name="aplikasi" required="" type="text"/>
+<label>꒰♡ Gmail/Nomor Akun :</label>
+<input name="gmailNomor" required="" type="text"/>
+<label>꒰♡ Password :</label>
+<input name="password" required="" type="text"/>
+<label>꒰♡ Profil :</label>
+<input name="profil" required="" type="text"/>
+<label>꒰♡ Pin :</label>
+<input name="pin" required="" type="text"/>
+<label>꒰♡ Keterangan :</label>
+<input name="keterangan" placeholder="Sharing/Private/1P2U/1P1U/Semi Private/Indplan/Famplan/Member/Head/Admin" required="" type="text"/>
+<label>꒰♡ Nama Tim :</label>
+<input name="namaTim" placeholder="Khusus canva" type="text"/>
+<label>꒰♡ Lokasi + device :</label>
+<input name="lokasiDevice" placeholder="Khusus disney &amp; netflix" type="text"/>
+<p><strong>CATATAN:</strong></p>
+<ul>
+<li>SETRAKAN SCREENSHOT PROBLEM</li>
+<li>GADA SS, GA PROSES</li>
+<li>SABAR!</li>
+<li>GARANSI 3x24 jam</li>
+</ul>
+<button class="claim-btn" type="submit">Claim</button>
+</form>
+</div>
+</div>
 <style>
 .claim-garansi-btn {
     background-color: #ff5722;
@@ -559,7 +772,6 @@
     background-color: #128C7E;
 }
 </style>
-
 <script>
 const claimGaransiBtn = document.getElementById('claimGaransiBtn');
 const claimGaransiModal = document.getElementById('claimGaransiModal');
@@ -604,7 +816,6 @@ claimGaransiForm.addEventListener('submit', (e) => {
     claimGaransiForm.reset();
 });
 </script>
-
 <style>
 .footer-container {
     text-align: center;
@@ -666,8 +877,7 @@ claimGaransiForm.addEventListener('submit', (e) => {
     }
 }
 </style>
-    
-    <!-- Versi ini disesuaikan dengan data dari gambar pricelist Dexstore dengan logo asli -->
+<!-- Versi ini disesuaikan dengan data dari gambar pricelist Dexstore dengan logo asli -->
 <script>
 document.addEventListener('DOMContentLoaded', () => {
     const scrollElements = document.querySelectorAll('.scroll-animate');
@@ -926,7 +1136,7 @@ const apps = [
     },
     {
         id: 19,
-        name: "MEITU PREMIUM",
+        name: "MEITU",
         logo: "https://play-lh.googleusercontent.com/137zLYibl0T45biqHmD8XKfKslOxg35b_zS8KJRGVyEBFVNqnWLwW3yRCcWawPZH9-s",
         prices: [
             { duration: "ANDROID - 7 Hari", price: "Rp 8.000" },
@@ -940,11 +1150,11 @@ const apps = [
     },
     {
         id: 20,
-        name: "BSTATION SHARING",
+        name: "BSTATION",
         logo: "https://play-lh.googleusercontent.com/G9s84Cm1TDnKDX2P8nipS_s60cuCnYtjBRRLespF8nivjXmbV9tF1fY37clZhXMLaA",
         prices: [
-            { duration: "1 Bulan", price: "Rp. 10.000" },
-            { duration: "1 Tahun", price: "Rp 25.000" }
+            { duration: " Sharing 1 Bulan", price: "Rp. 10.000" },
+            { duration: "Sharing 1 Tahun", price: "Rp 25.000" }
         ],
         description: "Note!\n➥ Akun seller\n➥ 1 Tahun garansi 6 Bulan\n➥ Bergaransi Jika Akun Salah Password\n➥ Sharing tidak garansi jika akun kena limit"
     },
@@ -960,7 +1170,7 @@ const apps = [
     },
     {
         id: 22,
-        name: "AMAZON PRIME VIDEO",
+        name: "AMAZON PRIME",
         logo: "https://play-lh.googleusercontent.com/04rBJNzGde7ZS3Il2UTM-xZ1HueDTTiHiYzGtl2Ie_INZM-JK-n1EVKI5J74ZFgCGPg",
         prices: [
             { duration: "SHARING - 1 Bulan", price: "10.000" },
@@ -973,7 +1183,7 @@ const apps = [
         name: "Aplikasi Lainnya",
         logo: "https://i.ibb.co/ynJDXx2N/Desain-tanpa-judul-1.jpg",
         prices: [
-            { duration: "Sesuai Request", price: "Mulai dari Rp5.000" }
+            { duration: "langsung tanya penjual", price: "Gratis" }
         ],
         description: "Tanyakan aplikasi lain yang Anda butuhkan, kami akan bantu mencarikannya."
     }
@@ -993,69 +1203,143 @@ function formatPrice(price) {
     return price.toLocaleString('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 });
 }
 
-    apps.forEach(app => {
-        const appContainer = document.createElement('div');
-        appContainer.style.display = 'flex';
-        appContainer.style.flexDirection = 'column';
-        appContainer.style.alignItems = 'center';
-        appContainer.style.cursor = 'pointer';
+        apps.forEach(app => {
+            const appContainer = document.createElement('div');
+            appContainer.style.display = 'flex';
+            appContainer.style.flexDirection = 'column';
+            appContainer.style.alignItems = 'center';
+            appContainer.style.cursor = 'pointer';
 
-        const miniApp = document.createElement('div');
-        miniApp.classList.add('mini-app');
-        miniApp.innerHTML = `<img src="${app.logo}" alt="${app.name}">`;
+            const miniApp = document.createElement('div');
+            miniApp.classList.add('mini-app');
 
-        const appName = document.createElement('div');
-        appName.classList.add('mini-app-name');
-        appName.textContent = app.name;
+            // Add GIF background for Netflix product
+            if (app.name === "Netflix") {
+                miniApp.style.position = 'relative';
+                const gifBg = document.createElement('img');
+                gifBg.src = 'https://cdn.pixabay.com/animation/2023/08/08/21/11/21-11-05-681_512.gif';
+                gifBg.alt = 'Netflix GIF Background';
+                gifBg.style.position = 'absolute';
+                gifBg.style.top = '50%';
+                gifBg.style.left = '50%';
+                gifBg.style.transform = 'translate(-50%, -50%)';
+                gifBg.style.width = '120%';
+                gifBg.style.height = '120%';
+                gifBg.style.zIndex = '0';
+                gifBg.style.borderRadius = '10px';
+                miniApp.appendChild(gifBg);
 
-        appContainer.appendChild(miniApp);
-        appContainer.appendChild(appName);
-        appName.classList.add('scroll-animate');
+                // Add Netflix logo image on top
+                const logoImg = document.createElement('img');
+                logoImg.src = app.logo;
+                logoImg.alt = app.name;
+                logoImg.style.position = 'relative';
+                logoImg.style.zIndex = '1';
+                logoImg.style.maxWidth = '100%';
+                logoImg.style.maxHeight = '100%';
+                logoImg.style.objectFit = 'contain';
+                logoImg.style.border = '1px solid #ccc';
+                logoImg.style.borderRadius = '8px';
+                logoImg.style.padding = '2px';
+                logoImg.style.backgroundColor = '#fff';
+                miniApp.appendChild(logoImg);
+            } else {
+                miniApp.innerHTML = `<img src="${app.logo}" alt="${app.name}">`;
+            }
 
-        appContainer.addEventListener('click', () => {
-            modalLogo.src = app.logo;
-            modalLogo.alt = app.name;
-            modalTitle.textContent = app.name;
-            
-            const minPrice = Math.min(...app.prices.map(p => parseInt(p.price.replace(/[^0-9]/g, ''))));
-            priceRange.textContent = `Mulai dari ${formatPrice(minPrice)}`;
-            
-            // Set popout description content as a list with title
-            const popoutDescriptionContent = document.getElementById('popoutDescriptionContent');
-            // Split description by comma followed by space or line breaks, filter out empty strings
-            const descriptionItems = app.description.split(/, |\n/).filter(item => item.trim() !== '');
-            // Create list HTML with CSS variable for animation delay
-            const listHTML = '<ul>' + descriptionItems.map(item => `<li>${item.trim()}.</li>`).join('') + '</ul>';
-            popoutDescriptionContent.innerHTML = `<h3 >Penjelasan ${app.name}</h3>` + listHTML;
+            const appName = document.createElement('div');
+            appName.classList.add('mini-app-name');
+            appName.textContent = app.name;
 
-            priceList.innerHTML = '';
-            priceList.innerHTML = '';
-            app.prices.forEach(p => {
-                const priceItem = document.createElement('div');
-                priceItem.classList.add('price-item');
-                priceItem.style.cursor = 'pointer';
-                priceItem.innerHTML = `
-                    <span class="price-duration">${p.duration}</span>
-                    <span class="price-amount">${p.price}</span>
-                `;
-                priceItem.addEventListener('click', () => {
-                    const waMessage = `Saya mau beli ${app.name} dengan durasi ${p.duration}`;
-                    const waLink = `https://wa.me/6281225589199?text=${encodeURIComponent(waMessage)}`;
-                    window.open(waLink, '_blank');
+            appContainer.appendChild(miniApp);
+            appContainer.appendChild(appName);
+            appName.classList.add('scroll-animate');
+
+            appContainer.addEventListener('click', () => {
+                modalLogo.src = app.logo;
+                modalLogo.alt = app.name;
+                modalTitle.textContent = app.name;
+                
+                const minPrice = Math.min(...app.prices.map(p => parseInt(p.price.replace(/[^0-9]/g, ''))));
+                priceRange.textContent = `Mulai dari ${formatPrice(minPrice)}`;
+                
+                // Set popout description content as a list with title
+                const popoutDescriptionContent = document.getElementById('popoutDescriptionContent');
+                // Split description by comma followed by space or line breaks, filter out empty strings
+                const descriptionItems = app.description.split(/, |\n/).filter(item => item.trim() !== '');
+                // Create list HTML with CSS variable for animation delay
+                const listHTML = '<ul>' + descriptionItems.map(item => `<li>${item.trim()}.</li>`).join('') + '</ul>';
+                popoutDescriptionContent.innerHTML = `<h3 >Penjelasan ${app.name}</h3>` + listHTML;
+
+                priceList.innerHTML = '';
+                priceList.innerHTML = '';
+                app.prices.forEach(p => {
+                    const priceItem = document.createElement('div');
+                    priceItem.classList.add('price-item');
+                    // Removed fire-shadow class addition to disable apiya effect
+                    // if (app.name === "Netflix") {
+                    //     priceItem.classList.add('fire-shadow');
+                    // }
+                    priceItem.style.cursor = 'default';
+                    priceItem.innerHTML = `
+                        <span class="price-duration">${p.duration}</span>
+                        <span class="price-amount">${p.price}</span>
+                        <div class="quantity-controls" style="display: flex; align-items: center; justify-content: center; gap: 5px; margin-top: 8px;">
+                            <button class="qty-btn minus-btn" style="padding: 2px 6px; font-weight: bold; cursor: pointer;">-</button>
+                            <span class="qty-value" style="min-width: 20px; text-align: center;">0</span>
+                            <button class="qty-btn plus-btn" style="padding: 2px 6px; font-weight: bold; cursor: pointer;">+</button>
+                        </div>
+                    `;
+                    priceList.appendChild(priceItem);
                 });
-                priceList.appendChild(priceItem);
+
+                // Tambah event listener untuk tombol + dan -
+                priceList.querySelectorAll('.price-item').forEach((item) => {
+                    const plusBtn = item.querySelector('.plus-btn');
+                    const minusBtn = item.querySelector('.minus-btn');
+                    const qtyValue = item.querySelector('.qty-value');
+
+                    plusBtn.addEventListener('click', (e) => {
+                        e.stopPropagation();
+                        let currentQty = parseInt(qtyValue.textContent);
+                        currentQty++;
+                        qtyValue.textContent = currentQty;
+
+                        const duration = item.querySelector('.price-duration').textContent;
+                        const price = item.querySelector('.price-amount').textContent;
+                        const appName = document.getElementById('modalTitle').textContent;
+
+                        addToCart({ name: appName + ' (' + duration + ')', price: price, quantity: currentQty });
+                        updateCartCount();
+                    });
+
+                    minusBtn.addEventListener('click', (e) => {
+                        e.stopPropagation();
+                        let currentQty = parseInt(qtyValue.textContent);
+                        if (currentQty > 0) {
+                            currentQty--;
+                            qtyValue.textContent = currentQty;
+
+                            const duration = item.querySelector('.price-duration').textContent;
+                            const price = item.querySelector('.price-amount').textContent;
+                            const appName = document.getElementById('modalTitle').textContent;
+
+                            removeFromCart({ name: appName + ' (' + duration + ')', price: price });
+                            updateCartCount();
+                        }
+                    });
+                });
+
+                // Update buyBtn to just open WhatsApp with product name only (optional)
+                 buyBtn.href = `https://wa.me/6281225589199?text=${encodeURIComponent(app.name)}`;
+                 
+                 appModal.classList.add('show');
+
+                // Hide popout initially
+                const descriptionPopout = document.getElementById('descriptionPopout');
             });
-
-            // Update buyBtn to just open WhatsApp with product name only (optional)
-            buyBtn.href = `https://wa.me/6281225589199?text=${encodeURIComponent(app.name)}`;
-            
-            appModal.classList.add('show');
-
-            // Hide popout initially
-            const descriptionPopout = document.getElementById('descriptionPopout');
+            appsMiniGrid.appendChild(appContainer);
         });
-        appsMiniGrid.appendChild(appContainer);
-    });
 
 const explanationBtn = document.getElementById('explanationBtn');
 const descriptionPopout = document.getElementById('descriptionPopout');
@@ -1074,12 +1358,26 @@ const closeDescriptionPopout = document.getElementById('closeDescriptionPopout')
         });
 
 closeDescriptionPopout.addEventListener('click', () => {
-    descriptionPopout.style.display = 'none';
+    if (!descriptionPopout.classList.contains('closing')) {
+        descriptionPopout.classList.add('closing');
+        const popoutDescriptionContent = document.getElementById('popoutDescriptionContent');
+        popoutDescriptionContent.classList.remove('open');
+        descriptionPopout.addEventListener('transitionend', function handler() {
+            descriptionPopout.classList.remove('open', 'closing');
+            descriptionPopout.removeEventListener('transitionend', handler);
+        });
+    }
 });
 
 window.addEventListener('click', (event) => {
-    if (event.target === descriptionPopout) {
-        descriptionPopout.style.display = 'none';
+    if (event.target === descriptionPopout && !descriptionPopout.classList.contains('closing')) {
+        descriptionPopout.classList.add('closing');
+        const popoutDescriptionContent = document.getElementById('popoutDescriptionContent');
+        popoutDescriptionContent.classList.remove('open');
+        descriptionPopout.addEventListener('transitionend', function handler() {
+            descriptionPopout.classList.remove('open', 'closing');
+            descriptionPopout.removeEventListener('transitionend', handler);
+        });
     }
 });
 
@@ -1093,6 +1391,387 @@ window.addEventListener('click', (event) => {
     }
 });
 </script>
+<script>
+    // Dummy cart data
+    let cartItems = [];
 
+    // Update cart count display
+    function updateCartCount() {
+        const cartCount = document.getElementById('cartCount');
+        const totalQuantity = cartItems.reduce((sum, item) => sum + (item.quantity || 1), 0);
+        cartCount.textContent = totalQuantity;
+    }
+
+    // Fungsi menambah item ke keranjang dengan update quantity jika sudah ada
+    function addToCart(item) {
+        const existingIndex = cartItems.findIndex(ci => ci.name === item.name);
+        if (existingIndex !== -1) {
+            cartItems[existingIndex].quantity = item.quantity;
+        } else {
+            cartItems.push(item);
+        }
+        updateCartCount();
+    }
+
+    // Fungsi mengurangi item dari keranjang, hapus jika quantity 0
+    function removeFromCart(item) {
+        const existingIndex = cartItems.findIndex(ci => ci.name === item.name);
+        if (existingIndex !== -1) {
+            if (cartItems[existingIndex].quantity > 1) {
+                cartItems[existingIndex].quantity--;
+            } else {
+                cartItems.splice(existingIndex, 1);
+            }
+        }
+        updateCartCount();
+    }
+
+    // Update jumlah total item di keranjang
+    function updateCartCount() {
+        const cartCount = document.getElementById('cartCount');
+        const totalQuantity = cartItems.reduce((sum, item) => sum + (item.quantity || 1), 0);
+        cartCount.textContent = totalQuantity;
+    }
+
+    // Tombol checkout di modal keranjang
+    const checkoutBtn = document.getElementById('checkoutBtnDropdown');
+    checkoutBtn.addEventListener('click', () => {
+        if (cartItems.length === 0) {
+            alert('Keranjang kosong. Silakan pilih aplikasi terlebih dahulu.');
+            return;
+        }
+        // Buat pesan WhatsApp dengan daftar item di keranjang dan total harga
+        let message = 'Saya ingin checkout aplikasi berikut:%0A';
+        let totalPrice = 0;
+        cartItems.forEach((item, index) => {
+            const quantity = item.quantity || 1;
+            const priceNumber = parseInt(item.price.replace(/[^0-9]/g, '')) || 0;
+            const totalItemPrice = priceNumber * quantity;
+            totalPrice += totalItemPrice;
+            message += `${index + 1}. ${item.name} - ${item.price} (Jumlah: ${quantity})%0A`;
+        });
+        message += `%0ATotal Harga: Rp${totalPrice.toLocaleString('id-ID')}`;
+        const waLink = `https://wa.me/6281225589199?text=${message}`;
+        window.open(waLink, '_blank');
+
+    
+});
+
+
+    // Fungsi render isi keranjang ke dalam modal
+    function renderCartItems() {
+        const cartItemsList = document.getElementById('cartItemsList');
+        cartItemsList.innerHTML = '';
+        if (cartItems.length === 0) {
+            cartItemsList.innerHTML = '<p>Keranjang kosong.</p>';
+            return;
+        }
+        cartItems.forEach(item => {
+            const itemDiv = document.createElement('div');
+            itemDiv.style.display = 'grid';
+            itemDiv.style.gridTemplateColumns = '1.5fr auto auto';
+            itemDiv.style.alignItems = 'center';
+            itemDiv.style.gap = '15px';
+            itemDiv.style.marginBottom = '15px';
+            itemDiv.style.borderBottom = '1px solid #ddd';
+            itemDiv.style.paddingBottom = '10px';
+
+            const nameSpan = document.createElement('span');
+            nameSpan.textContent = item.name;
+            nameSpan.style.fontWeight = '600';
+            nameSpan.style.color = '#333';
+
+            const qtySpan = document.createElement('span');
+            qtySpan.textContent = `Jumlah: ${item.quantity || 1}`;
+            qtySpan.style.textAlign = 'center';
+            qtySpan.style.color = '#555';
+
+            const priceSpan = document.createElement('span');
+            priceSpan.textContent = item.price;
+            priceSpan.style.textAlign = 'center';
+            priceSpan.style.color = 'var(--accent-color)';
+            priceSpan.style.fontWeight = '700';
+
+            itemDiv.appendChild(nameSpan);
+            itemDiv.appendChild(qtySpan);
+            itemDiv.appendChild(priceSpan);
+
+            cartItemsList.appendChild(itemDiv);
+        });
+    }
+
+    // Event listener untuk tombol "Lihat Keranjang"
+    const viewCartBtn = document.getElementById('viewCartBtn');
+    const cartModal = document.getElementById('cartModal');
+    const closeCartModal = document.getElementById('closeCartModal');
+    const cartDropdown = document.getElementById('cartDropdown');
+    const cartDropdownItems = document.getElementById('cartDropdownItems');
+    const checkoutBtnDropdown = document.getElementById('checkoutBtnDropdown');
+
+    function renderCartDropdownItems() {
+        cartDropdownItems.innerHTML = '';
+        if (cartItems.length === 0) {
+            cartDropdownItems.innerHTML = '<p>Keranjang kosong.</p>';
+            return;
+        }
+
+        // Create header row
+        const headerDiv = document.createElement('div');
+        headerDiv.style.display = 'grid';
+        headerDiv.style.gridTemplateColumns = '2fr 1fr 1fr 1fr';
+        headerDiv.style.fontWeight = '700';
+        headerDiv.style.borderBottom = '2px solid var(--accent-color)';
+        headerDiv.style.paddingBottom = '8px';
+        headerDiv.style.marginBottom = '8px';
+
+        const headers = ['Produk', 'Durasi', 'Jumlah', 'Harga'];
+        headers.forEach(text => {
+            const headerSpan = document.createElement('span');
+            headerSpan.textContent = text;
+            headerSpan.style.color = 'var(--accent-color)';
+            headerDiv.appendChild(headerSpan);
+        });
+        cartDropdownItems.appendChild(headerDiv);
+
+        let totalQuantity = 0;
+        let totalPrice = 0;
+
+        cartItems.forEach(item => {
+            const itemDiv = document.createElement('div');
+            itemDiv.style.display = 'grid';
+            itemDiv.style.gridTemplateColumns = '2fr 1fr 1fr 1fr';
+            itemDiv.style.alignItems = 'center';
+            itemDiv.style.gap = '10px';
+            itemDiv.style.marginBottom = '12px';
+            itemDiv.style.borderBottom = '1px solid #ddd';
+            itemDiv.style.paddingBottom = '8px';
+
+            // Parse product name and duration from item.name (format: "AppName (Duration)")
+            let productName = item.name;
+            let duration = '';
+            const match = item.name.match(/^(.*) \((.*)\)$/);
+            if (match) {
+                productName = match[1];
+                duration = match[2];
+            }
+
+            const productSpan = document.createElement('span');
+            productSpan.textContent = productName;
+            productSpan.style.fontWeight = '600';
+            productSpan.style.color = '#333';
+
+            const durationSpan = document.createElement('span');
+            durationSpan.textContent = duration;
+            durationSpan.style.color = '#555';
+
+            const qtySpan = document.createElement('span');
+            const quantity = item.quantity || 1;
+            qtySpan.textContent = quantity;
+            qtySpan.style.textAlign = 'center';
+            qtySpan.style.color = '#555';
+
+            const priceSpan = document.createElement('span');
+            priceSpan.style.textAlign = 'center';
+            priceSpan.style.color = 'var(--accent-color)';
+            priceSpan.style.fontWeight = '700';
+
+            // Parse price number from item.price string (e.g. "Rp10.000")
+            const priceNumber = parseInt(item.price.replace(/[^0-9]/g, '')) || 0;
+            const totalItemPrice = priceNumber * quantity;
+            priceSpan.textContent = totalItemPrice.toLocaleString('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 });
+
+            itemDiv.appendChild(productSpan);
+            itemDiv.appendChild(durationSpan);
+            itemDiv.appendChild(qtySpan);
+            itemDiv.appendChild(priceSpan);
+
+            cartDropdownItems.appendChild(itemDiv);
+
+            totalQuantity += quantity;
+            totalPrice += totalItemPrice;
+        });
+
+        // Add totals row
+        const totalsDiv = document.createElement('div');
+        totalsDiv.style.display = 'grid';
+        totalsDiv.style.gridTemplateColumns = '2fr 1fr 1fr 1fr';
+        totalsDiv.style.fontWeight = '700';
+        totalsDiv.style.borderTop = '2px solid var(--accent-color)';
+        totalsDiv.style.paddingTop = '8px';
+        totalsDiv.style.marginTop = '8px';
+        totalsDiv.style.marginLeft = '10px';
+
+        const totalLabelSpan = document.createElement('span');
+        totalLabelSpan.textContent = 'Total';
+        totalLabelSpan.style.gridColumn = 'span 2';
+        totalsDiv.appendChild(totalLabelSpan);
+
+        const totalQtySpan = document.createElement('span');
+        totalQtySpan.textContent = totalQuantity;
+        totalQtySpan.style.textAlign = 'center';
+        totalsDiv.appendChild(totalQtySpan);
+
+        const totalPriceSpan = document.createElement('span');
+        totalPriceSpan.textContent = totalPrice.toLocaleString('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 });
+        totalPriceSpan.style.textAlign = 'center';
+        totalsDiv.appendChild(totalPriceSpan);
+
+        cartDropdownItems.appendChild(totalsDiv);
+    }
+
+    function toggleCartDropdown() {
+        if (cartDropdown.style.display === 'block') {
+            cartDropdown.style.display = 'none';
+        } else {
+            renderCartDropdownItems();
+            cartDropdown.style.display = 'block';
+        }
+    }
+
+viewCartBtn.addEventListener('click', () => {
+        toggleCartDropdown();
+    });
+
+    document.getElementById('cartIcon').addEventListener('click', () => {
+        toggleCartDropdown();
+    });
+
+    // Close button for cart dropdown
+    const closeCartDropdownBtn = document.getElementById('closeCartDropdown');
+    closeCartDropdownBtn.addEventListener('click', () => {
+        cartDropdown.style.display = 'none';
+    });
+
+    // Add event listener for the new "LIHAT KERANJANG" button next to "BELI SEKARANG"
+    const newViewCartBtn = document.querySelector('#viewCartBtnModal');
+    if (newViewCartBtn) {
+        // Enable the button
+        newViewCartBtn.disabled = false;
+        newViewCartBtn.style.opacity = '1';
+        newViewCartBtn.style.cursor = 'pointer';
+
+        // Add event listener to toggle cart dropdown below cart icon and close product price card modal
+        newViewCartBtn.addEventListener('click', () => {
+            // Close the product price card modal
+            appModal.classList.remove('show');
+
+            // Toggle cart dropdown below cart icon
+            if (cartDropdown.style.display === 'block') {
+                cartDropdown.style.display = 'none';
+            } else {
+                renderCartDropdownItems();
+                cartDropdown.style.display = 'block';
+            }
+        });
+    }
+
+    // Event listener untuk tombol close modal keranjang
+    closeCartModal.addEventListener('click', () => {
+        cartModal.classList.remove('show');
+        setTimeout(() => {
+            cartModal.style.display = 'none';
+        }, 300);
+    });
+
+    // Tutup modal jika klik di luar konten modal
+    window.addEventListener('click', (event) => {
+        if (event.target !== cartModal && !cartModal.contains(event.target) && event.target !== viewCartBtn) {
+            if (cartModal.classList.contains('show')) {
+                cartModal.classList.remove('show');
+                setTimeout(() => {
+                    cartModal.style.display = 'none';
+                }, 300);
+            }
+        }
+    });
+
+                // Contoh menambahkan item ke keranjang saat klik paket harga
+</script>
+<script>
+document.getElementById('enterBtn').addEventListener('click', (event) => {
+    const button = event.currentTarget;
+    button.classList.add('button-click-animate');
+    button.disabled = true; // Prevent multiple clicks
+
+    // After animation ends, fade out overlay
+    button.addEventListener('animationend', () => {
+        const entryPage = document.getElementById('entryPage');
+        entryPage.style.opacity = '0';
+        setTimeout(() => {
+            entryPage.style.display = 'none';
+            document.body.style.overflow = 'auto'; // Enable scrolling after entry
+        }, 500); // Match the CSS transition duration
+    }, { once: true });
+});
+</script>
+<script>
+const enterBtn = document.getElementById('enterBtn');
+const entryPage = document.getElementById('entryPage');
+const loadingOverlay = document.getElementById('loadingOverlay');
+
+enterBtn.addEventListener('click', () => {
+  enterBtn.classList.add('button-click-animate');
+  loadingOverlay.style.display = 'flex';
+
+  // Setelah 2 detik, loading hilang dan halaman masuk
+  setTimeout(() => {
+    loadingOverlay.style.display = 'none';
+    entryPage.style.opacity = '0';
+    setTimeout(() => {
+      entryPage.style.display = 'none';
+    }, 500);
+  }, 2000);
+});
+</script>
+
+<audio id="backgroundAudio" src="https://ia601006.us.archive.org/28/items/coffee-lofi-1-hour-cafe-song-stream-cafe-cute-relaxing-music-make-your-day-better-lofi-kitty-1/Coffee%20Lofi%20%E2%98%951%20Hour%20Cafe%20Song%20%F0%9F%8E%B5%20Stream%20cafe%20%E2%9C%A8cute%20%26%20relaxing%20music%20%F0%9F%8D%AA%20Make%20Your%20Day%20Better%20-%20Lofi%20Kitty%20%281%29.mp3" loop></audio>
+<script>
+document.getElementById('enterBtn').addEventListener('click', (event) => {
+    const button = event.currentTarget;
+    button.classList.add('button-click-animate');
+    button.disabled = true; // Prevent multiple clicks
+
+    // After animation ends, fade out overlay and play audio
+    button.addEventListener('animationend', () => {
+        const entryPage = document.getElementById('entryPage');
+        entryPage.style.opacity = '0';
+        setTimeout(() => {
+            entryPage.style.display = 'none';
+            document.body.style.overflow = 'auto'; // Enable scrolling after entry
+            const audio = document.getElementById('backgroundAudio');
+            audio.volume = 0.3;
+            audio.play().catch(e => {
+                // Handle play promise rejection if any
+                console.log('Audio play was prevented:', e);
+            });
+        }, 500); // Match the CSS transition duration
+    }, { once: true });
+
+    document.addEventListener('DOMContentLoaded', () => {
+    document.querySelectorAll('.mini-app').forEach((app) => {
+      app.addEventListener('touchstart', () => {
+        app.classList.add('active');
+        setTimeout(() => app.classList.remove('active'), 300); // reset animasi
+      });
+    });
+  });
+});
+
+function toggleCartDropdown() {
+  const dropdown = document.getElementById('cartDropdown');
+
+  if (dropdown.style.display === 'block') {
+    dropdown.style.display = 'none';
+  } else {
+    renderCartDropdownItems(); // tampilkan isi keranjang
+    dropdown.style.display = 'block';
+
+    // Force restart animasi
+    dropdown.classList.remove('animate-bounce');
+    void dropdown.offsetWidth; // <- TRIK WAJIB agar animasi diulang
+    dropdown.classList.add('animate-bounce');
+  }
+}
+</script>
 </body>
 </html>
